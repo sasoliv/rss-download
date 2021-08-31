@@ -1,49 +1,95 @@
+import json
 import re
+import os
 import urllib.request
+
 from urllib.request import urlopen
 from xml.etree import ElementTree
 
 
-class Feed:
-    def __init__(self, regex, url):
-        self.regex = regex
-        self.url = url
+def overwrite(file, content):
+    f = open(file, "w")
+    f.write(content)
+    f.close()
 
 
-def download(url):
+def read(file):
+    f = open(file, "r")
+    content = f.read()
+    f.close()
+    return content
+
+
+def download(url, destination):
     split = url.split("/")
-    urllib.request.urlretrieve(url, "/home/ctw00452/Desktop/" + split[len(split) - 1])
+    filename = split[len(split) - 1]
+    urllib.request.urlretrieve(url, destination + filename)
+    print(url)
 
 
-def process_item(feed, item):
-    title = list(filter(lambda child: child.tag == "title", list(item)))
-    link = list(filter(lambda child: child.tag == "link", list(item)))
+def process_item(feed, title, link):
     if title.__sizeof__() <= 0 | link.__sizeof__() <= 0:
         return
 
-    if re.match(feed.regex, title[0].text):
-        download(link[0].text)
+    if re.match(feed["regex"], title):
+        download(link, os.path.expanduser(feed["destination"]))
 
 
-def process(feed):
-    response = urlopen(feed.url)
+def httpGet(url):
+    response = urlopen(url)
     html_response = response.read()
     encoding = response.headers.get_content_charset('utf-8')
-    decoded_html = html_response.decode(encoding)
+    return html_response.decode(encoding)
 
-    root = ElementTree.fromstring(decoded_html)
+
+def doProcess(cacheFile, feed):
+    response = httpGet(feed["url"])
+    lastItem = read(cacheFile)
+
+    root = ElementTree.fromstring(response)
     channel = list(root)[0]
     items = filter(lambda item: item.tag == "item", list(channel))
     for item in items:
-        process_item(feed, item)
+        title = list(filter(lambda child: child.tag ==
+                            "title", list(item)))[0].text
+        link = list(filter(lambda child: child.tag ==
+                           "link", list(item)))[0].text
+        if title == lastItem:
+            break
+
+        process_item(feed, title, link)
+
+    refreshCache(cacheFile, response)
+
+
+def refreshCache(cacheFile, feedResponse):
+    root = ElementTree.fromstring(feedResponse)
+    channel = list(root)[0]
+    items = filter(lambda item: item.tag == "item", list(channel))
+    title = list(filter(lambda child: child.tag == "title", next(items)))
+    overwrite(cacheFile, title[0].text)
+
+
+def process(cacheFolder, feed):
+    cacheFile = cacheFolder + "/" + feed["id"]
+    if os.path.exists(cacheFile):
+        doProcess(cacheFile, feed)
+    else:
+        refreshCache(cacheFile, httpGet(feed["url"]))
 
 
 def main():
-    feeds = [
-        Feed("^.*$", "https://nyaa.si/?page=rss&q=%5BSubsPlease%5D+Boruto+-+Naruto+Next+Generations+1080p&c=1_2&f=0")
-    ]
-    for feed in feeds:
-        process(feed)
+    home = os.path.expanduser("~")
+    configFile = home + "/Desktop/rss-download/config.json"
+    cacheFolder = home + "/.cache/rss-download"
+
+    if not os.path.exists(cacheFolder):
+        os.makedirs(cacheFolder)
+
+    config = json.load(open(configFile))
+
+    for feed in list(config["feeds"]):
+        process(cacheFolder, feed)
 
 
 if __name__ == "__main__":

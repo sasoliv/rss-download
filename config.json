@@ -1,0 +1,16 @@
+{
+    "feeds": [
+        {
+            "id": "1",
+            "url": "https://...",
+            "regex": "^.*$",
+            "destination": "~/downloads/"
+        },
+        {
+            "id": "2",
+            "url": "https://...",
+            "regex": "^.*$",
+            "destination": "~/downloads/"
+        }
+    ]
+}
