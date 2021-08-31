@@ -50,10 +50,15 @@ def doProcess(cacheFile, feed):
     channel = list(root)[0]
     items = filter(lambda item: item.tag == "item", list(channel))
     for item in items:
-        title = list(filter(lambda child: child.tag ==
-                            "title", list(item)))[0].text
-        link = list(filter(lambda child: child.tag ==
-                           "link", list(item)))[0].text
+
+        title = list(filter(
+            lambda child: child.tag == "title", list(item)
+        ))[0].text
+
+        link = list(filter(
+            lambda child: child.tag == "link", list(item)
+        ))[0].text
+
         if title == lastItem:
             break
 
