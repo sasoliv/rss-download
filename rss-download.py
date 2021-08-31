@@ -56,7 +56,7 @@ def httpGet(url):
 
 def doProcess(cacheFile, feed):
     response = httpGet(feed["url"])
-    lastItem = read(cacheFile)
+    lastItem = read(cacheFile).strip()
 
     root = ElementTree.fromstring(response)
     channel = list(root)[0]
@@ -65,7 +65,7 @@ def doProcess(cacheFile, feed):
 
         title = list(filter(
             lambda child: child.tag == "title", list(item)
-        ))[0].text
+        ))[0].text.strip()
 
         link = list(filter(
             lambda child: child.tag == "link", list(item)
