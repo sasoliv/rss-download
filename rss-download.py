@@ -80,7 +80,7 @@ def process(cacheFolder, feed):
 
 def main():
     home = os.path.expanduser("~")
-    configFile = home + "/Desktop/rss-download/config.json"
+    configFile = home + "/rss-download/config.json"
     cacheFolder = home + "/.cache/rss-download"
 
     if not os.path.exists(cacheFolder):
