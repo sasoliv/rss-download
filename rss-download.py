@@ -80,8 +80,9 @@ def process(cacheFolder, feed):
 
 def main():
     home = os.path.expanduser("~")
-    configFile = home + "/rss-download/config.json"
-    cacheFolder = home + "/.cache/rss-download"
+    appName = "rss-download"
+    configFile = home + "/" + appName + "/config.json"
+    cacheFolder = home + "/.cache/" + appName
 
     if not os.path.exists(cacheFolder):
         os.makedirs(cacheFolder)
