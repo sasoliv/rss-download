@@ -34,7 +34,7 @@ def download(url, destination):
     printNow("Starting download:", url)
     split = url.split("/")
     filename = split[len(split) - 1]
-    finalFile = destination + filename
+    finalFile = destination + "/" + filename
     urllib.request.urlretrieve(url, finalFile)
     printNow("Download done. Stored in:", finalFile)
 
