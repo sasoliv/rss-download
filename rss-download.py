@@ -1,10 +1,20 @@
 import json
 import re
 import os
+import time
 import urllib.request
 
+from datetime import datetime
 from urllib.request import urlopen
 from xml.etree import ElementTree
+
+
+def nowStr():
+    return datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+
+
+def printNow(*values):
+    print(nowStr(), *values)
 
 
 def overwrite(file, content):
@@ -21,10 +31,12 @@ def read(file):
 
 
 def download(url, destination):
+    printNow("Starting download:", url)
     split = url.split("/")
     filename = split[len(split) - 1]
-    urllib.request.urlretrieve(url, destination + filename)
-    print(url)
+    finalFile = destination + filename
+    urllib.request.urlretrieve(url, finalFile)
+    printNow("Download done. Stored in:", finalFile)
 
 
 def process_item(feed, title, link):
@@ -84,18 +96,26 @@ def process(cacheFolder, feed):
 
 
 def main():
+    printNow("Init...")
     home = os.path.expanduser("~")
     appName = "rss-download"
-    configFile = home + "/" + appName + "/config.json"
+    configFile = home + "/.config/" + appName + "/config.json"
     cacheFolder = home + "/.cache/" + appName
 
     if not os.path.exists(cacheFolder):
         os.makedirs(cacheFolder)
 
-    config = json.load(open(configFile))
+    printNow("Init done")
+    while True:
+        printNow("Starting iteration...")
+        config = json.load(open(configFile))
+        for feed in list(config["feeds"]):
+            process(cacheFolder, feed)
 
-    for feed in list(config["feeds"]):
-        process(cacheFolder, feed)
+        sleepSeconds = config["pollIntervalSeconds"]
+        printNow("Iteration done")
+        printNow("Sleeping for", str(sleepSeconds), "seconds")
+        time.sleep(sleepSeconds)
 
 
 if __name__ == "__main__":
