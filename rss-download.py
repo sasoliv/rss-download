@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import os
 import time
@@ -8,13 +9,20 @@ from datetime import datetime
 from urllib.request import urlopen
 from xml.etree import ElementTree
 
+appName = "rss-download"
+home = os.path.expanduser("~")
+configFile = home + "/.config/" + appName + "/config.json"
+cacheFolder = home + "/.cache/" + appName
+logging.basicConfig(filename='/var/log/rss-download.log',
+                    encoding='utf-8', level=logging.DEBUG)
+
 
 def nowStr():
     return datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
 
 
-def printNow(*values):
-    print(nowStr(), *values)
+def log(*values):
+    logging.debug(nowStr() + " ", " ".join(values))
 
 
 def overwrite(file, content):
@@ -31,12 +39,12 @@ def read(file):
 
 
 def download(url, destination):
-    printNow("Starting download:", url)
+    log("Starting download:", url)
     split = url.split("/")
     filename = split[len(split) - 1]
     finalFile = destination + "/" + filename
     urllib.request.urlretrieve(url, finalFile)
-    printNow("Download done. Stored in:", finalFile)
+    log("Download done. Stored in:", finalFile)
 
 
 def process_item(feed, title, link):
@@ -96,25 +104,21 @@ def process(cacheFolder, feed):
 
 
 def main():
-    printNow("Init...")
-    home = os.path.expanduser("~")
-    appName = "rss-download"
-    configFile = home + "/.config/" + appName + "/config.json"
-    cacheFolder = home + "/.cache/" + appName
+    log("Init...")
 
     if not os.path.exists(cacheFolder):
         os.makedirs(cacheFolder)
 
-    printNow("Init done")
+    log("Init done")
     while True:
-        printNow("Starting iteration...")
+        log("Starting iteration...")
         config = json.load(open(configFile))
         for feed in list(config["feeds"]):
             process(cacheFolder, feed)
 
         sleepSeconds = config["pollIntervalSeconds"]
-        printNow("Iteration done")
-        printNow("Sleeping for", str(sleepSeconds), "seconds")
+        log("Iteration done")
+        log("Sleeping for", str(sleepSeconds), "seconds")
         time.sleep(sleepSeconds)
 
 
