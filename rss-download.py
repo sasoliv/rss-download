@@ -1,7 +1,7 @@
 import json
-import logging
 import re
 import os
+import sys
 import time
 import urllib.request
 
@@ -13,8 +13,6 @@ appName = "rss-download"
 home = os.path.expanduser("~")
 configFile = home + "/.config/" + appName + "/config.json"
 cacheFolder = home + "/.cache/" + appName
-logging.basicConfig(filename='/var/log/rss-download.log',
-                    encoding='utf-8', level=logging.DEBUG)
 
 
 def nowStr():
@@ -22,7 +20,8 @@ def nowStr():
 
 
 def log(*values):
-    logging.debug(nowStr() + " ", " ".join(values))
+    print(nowStr(), *values)
+    sys.stdout.flush()
 
 
 def overwrite(file, content):
